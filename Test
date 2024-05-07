@@ -1,0 +1,54 @@
+import requests
+from bs4 import BeautifulSoup
+import ssl
+import socket
+
+def check_url_legitimacy(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            print("URL is reachable and legitimate.")
+        else:
+            print("URL might be suspicious or unreachable")
+    except Exception as e:
+        print("Error occurred while checking URL:", e)
+
+def analyze_website_content(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, "html.parser")
+
+            if "login" in soup.text.lower():
+                print("This website contains a login form.")
+            else:
+                print("No login form found. This might be suspicious.")
+        else:
+            print("URL might be unreachable or returned an error. ")
+    except Exception as e:
+        print("Error occurred while analyzing website content:", e)
+
+def check_ssl_certificate(url):
+    try:
+        hostname = url.split("//")[-1].split("/")[0]
+        ctx = ssl.create_default_context()
+        with ctx.wrap_socket(socket.socket(), server_hostname=hostname) as s:
+            s.connect((hostname, 443))
+            cert = s.getpeercert()
+            if cert:
+                print("SSL certificate details:")
+                print("Subject:", cert.get("subject"))
+                print("Issuer:", cert.get("issuer"))
+                print("Expiration Date:", cert.get("notAfter"))
+            else:
+                print("No SSL certificate found.")
+    except Exception as e:
+        print("Error occurred while checking SSL certificate:", e)
+
+def detect_phishing(url):
+    check_url_legitimacy(url)
+    analyze_website_content(url)
+    check_ssl_certificate(url)
+
+url = "example.com"
+detect_phishing(url)
